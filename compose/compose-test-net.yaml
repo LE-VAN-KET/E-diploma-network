@@ -1,0 +1,289 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '3.7'
+volumes:
+    peer0.dut.udn.vn:
+    peer1.dut.udn.vn:
+    peer0.sv.udn.vn:
+    peer1.sv.udn.vn:
+
+networks:
+    test:
+        name: fabric_test
+
+services:
+    couchdb0:
+        container_name: couchdb0
+        image: couchdb:3.1.1
+        labels:
+            service: hyperledger-fabric
+        # Populate the COUCHDB_USER and COUCHDB_PASSWORD to set an admin user and password
+        # for CouchDB.  This will prevent CouchDB from operating in an "Admin Party" mode.
+        environment:
+            - COUCHDB_USER=admin
+            - COUCHDB_PASSWORD=adminpw
+        # Comment/Uncomment the port mapping if you want to hide/expose the CouchDB service,
+        # for example map it to utilize Fauxton User Interface in dev environments.
+        ports:
+            - "5984:5984"
+        networks:
+            - test
+
+    couchdb1:
+        container_name: couchdb1
+        image: couchdb:3.1.1
+        labels:
+            service: hyperledger-fabric
+        # Populate the COUCHDB_USER and COUCHDB_PASSWORD to set an admin user and password
+        # for CouchDB.  This will prevent CouchDB from operating in an "Admin Party" mode.
+        environment:
+            - COUCHDB_USER=admin
+            - COUCHDB_PASSWORD=adminpw
+        # Comment/Uncomment the port mapping if you want to hide/expose the CouchDB service,
+        # for example map it to utilize Fauxton User Interface in dev environments.
+        ports:
+            - "7984:5984"
+        networks:
+            - test
+
+    couchdb2:
+        container_name: couchdb2
+        image: couchdb:3.1.1
+        environment:
+            - COUCHDB_USER=admin
+            - COUCHDB_PASSWORD=adminpw
+        ports:
+            - "3984:5984"
+        networks:
+            - test
+
+    couchdb3:
+        container_name: couchdb3
+        image: couchdb:3.1.1
+        environment:
+            - COUCHDB_USER=admin
+            - COUCHDB_PASSWORD=adminpw
+        ports:
+            - "4984:5984"
+        networks:
+            - test
+
+    peer0.dut.udn.vn:
+        container_name: peer0.dut.udn.vn
+        extends:
+            file: base.yaml
+            service: peer-base
+        environment:
+            - FABRIC_LOGGING_SPEC=info
+            - ORDERER_GENERAL_LOGLEVEL=info
+            - CORE_PEER_LOCALMSPID=Org1MSP
+            - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabricnet_test
+            - CORE_PEER_ID=peer0.dut.udn.vn
+            - CORE_PEER_ADDRESS=peer0.dut.udn.vn:7051
+            - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+            - CORE_PEER_CHAINCODEADDRESS=peer0.dut.udn.vn:7052
+            - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+            # Peer used to bootstrap gossip within organisation
+            - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.dut.udn.vn:8051
+            # Exposed for discovery Service
+            - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.dut.udn.vn:7051
+
+            - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:9440
+
+            - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+            - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
+            # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
+            # provide the credentials for ledger to connect to CouchDB.  The username and password must
+            # match the username and password set for the associated CouchDB.
+            - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+            - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+            - CORE_METRICS_PROVIDER=prometheus
+            - CORE_PEER_TLS_ENABLED=true
+            - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+            - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+            - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+            - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+        depends_on:
+            - couchdb0
+        ports:
+            - 7051:7051
+            - 9440:9440
+
+        volumes:
+            - ../organizations/peerOrganizations/dut.udn.vn/peers/peer0.dut.udn.vn/msp:/etc/hyperledger/fabric/msp
+            - ../organizations/peerOrganizations/dut.udn.vn/peers/peer0.dut.udn.vn/tls:/etc/hyperledger/fabric/tls
+            - /var/run/:/host/var/run/
+            - ./:/etc/hyperledger/channel/
+            - peer0.dut.udn.vn:/var/hyperledger/production
+        networks:
+            - test
+
+    peer1.dut.udn.vn:
+        container_name: peer1.dut.udn.vn
+        extends:
+            file: base.yaml
+            service: peer-base
+        environment:
+            - FABRIC_LOGGING_SPEC=info
+            - ORDERER_GENERAL_LOGLEVEL=info
+            - CORE_PEER_LOCALMSPID=Org1MSP
+
+            - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabricnet_test
+
+            - CORE_PEER_ID=peer1.dut.udn.vn
+            - CORE_PEER_ADDRESS=peer1.dut.udn.vn:8051
+            - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
+            - CORE_PEER_CHAINCODEADDRESS=peer1.dut.udn.vn:8052
+            - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8052
+            # Exposed for discovery Service
+            - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.dut.udn.vn:8051
+            - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.dut.udn.vn:7051
+
+            - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+            - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
+            - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+            - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+            - CORE_METRICS_PROVIDER=prometheus
+            - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:9441
+            - CORE_PEER_TLS_ENABLED=true
+            - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+            - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+            - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+            - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+        ports:
+            - 8051:8051
+            - 9441:9441
+
+        volumes:
+            - ../organizations/peerOrganizations/dut.udn.vn/peers/peer1.dut.udn.vn/msp:/etc/hyperledger/fabric/msp
+            - ../organizations/peerOrganizations/dut.udn.vn/peers/peer1.dut.udn.vn/tls:/etc/hyperledger/fabric/tls
+            - /var/run/:/host/var/run/
+            - ./:/etc/hyperledger/channel/
+            - peer1.dut.udn.vn:/var/hyperledger/production
+        depends_on:
+            - couchdb1
+        networks:
+            - test
+
+    peer0.sv.udn.vn:
+        container_name: peer0.sv.udn.vn
+        extends:
+            file: base.yaml
+            service: peer-base
+        environment:
+            - FABRIC_LOGGING_SPEC=info
+            - ORDERER_GENERAL_LOGLEVEL=info
+            - CORE_PEER_LOCALMSPID=Org2MSP
+
+            - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabricnet_test
+
+            - CORE_PEER_ID=peer0.sv.udn.vn
+            - CORE_PEER_ADDRESS=peer0.sv.udn.vn:9051
+            - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
+            - CORE_PEER_CHAINCODEADDRESS=peer0.sv.udn.vn:9052
+            - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
+            # Exposed for discovery Service
+            - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.sv.udn.vn:9051
+            - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.sv.udn.vn:10051
+
+            - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+            - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
+            - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+            - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+            - CORE_METRICS_PROVIDER=prometheus
+            - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:9442
+            - CORE_PEER_TLS_ENABLED=true
+            - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+            - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+            - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+            - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+        ports:
+            - "9051:9051"
+            - "9442:9442"
+
+        volumes:
+            - ../organizations/peerOrganizations/sv.udn.vn/peers/peer0.sv.udn.vn/msp:/etc/hyperledger/fabric/msp
+            - ../organizations/peerOrganizations/sv.udn.vn/peers/peer0.sv.udn.vn/tls:/etc/hyperledger/fabric/tls
+            - /var/run/:/host/var/run/
+            - ./:/etc/hyperledger/channel/
+            - peer0.sv.udn.vn:/var/hyperledger/production
+        networks:
+            - test
+        depends_on:
+            - couchdb2
+
+    peer1.sv.udn.vn:
+        container_name: peer1.sv.udn.vn
+        extends:
+            file: base.yaml
+            service: peer-base
+        environment:
+            - FABRIC_LOGGING_SPEC=info
+            - ORDERER_GENERAL_LOGLEVEL=info
+            - CORE_PEER_LOCALMSPID=Org2MSP
+
+            - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabricnet_test
+
+            - CORE_PEER_ID=peer1.sv.udn.vn
+            - CORE_PEER_ADDRESS=peer1.sv.udn.vn:10051
+            - CORE_PEER_LISTENADDRESS=0.0.0.0:10051
+            - CORE_PEER_CHAINCODEADDRESS=peer1.sv.udn.vn:10052
+            - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10052
+            # Exposed for discovery Service
+            - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.sv.udn.vn:10051
+            - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.sv.udn.vn:9051
+
+            - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+            - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb3:5984
+            - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+            - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+            - CORE_METRICS_PROVIDER=prometheus
+            - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:9443
+            - CORE_PEER_TLS_ENABLED=true
+            - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+            - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+            - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+            - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+        ports:
+            - "10051:10051"
+            - "9443:9443"
+
+        volumes:
+            - ../organizations/peerOrganizations/sv.udn.vn/peers/peer1.sv.udn.vn/msp:/etc/hyperledger/fabric/msp
+            - ../organizations/peerOrganizations/sv.udn.vn/peers/peer1.sv.udn.vn/tls:/etc/hyperledger/fabric/tls
+            - /var/run/:/host/var/run/
+            - ./:/etc/hyperledger/channel/
+            - peer1.sv.udn.vn:/var/hyperledger/production
+        networks:
+            - test
+        depends_on:
+            - couchdb3
+
+    cli:
+        container_name: cli
+        image: hyperledger/fabric-tools:latest
+        labels:
+            service: hyperledger-fabric
+        tty: true
+        stdin_open: true
+        environment:
+            - GOPATH=/opt/gopath
+            - FABRIC_LOGGING_SPEC=INFO
+            - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+            #- FABRIC_LOGGING_SPEC=DEBUG
+        working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+        command: /bin/bash
+        volumes:
+            - ../organizations:/opt/gopath/src/github.com/hyperledger/fabric/peer/organizations
+            - ../scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+            - ./docker/peercfg:/etc/hyperledger/peercfg
+        depends_on:
+            - peer0.dut.udn.vn
+            - peer1.dut.udn.vn
+            - peer0.sv.udn.vn
+            - peer1.sv.udn.vn
+        networks:
+            - test
