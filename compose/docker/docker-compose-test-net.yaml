@@ -5,8 +5,8 @@
 
 version: '3.7'
 services:
-  peer0.dut.udn.vn:
-    container_name: peer0..dut.udn.vn
+  peer0.issuer.com:
+    container_name: peer0.issuer.com
     image: hyperledger/fabric-peer:latest
     labels:
       service: hyperledger-fabric
@@ -18,8 +18,8 @@ services:
       - ./docker/peercfg:/etc/hyperledger/peercfg
       - ${DOCKER_SOCK}:/host/var/run/docker.sock
 
-  peer1.dut.udn.vn:
-    container_name: peer1.dut.udn.vn
+  peer1.issuer.com:
+    container_name: peer1.issuer.com
     image: hyperledger/fabric-peer:latest
     labels:
       service: hyperledger-fabric
@@ -31,8 +31,8 @@ services:
       - ./docker/peercfg:/etc/hyperledger/peercfg
       - ${DOCKER_SOCK}:/host/var/run/docker.sock
 
-  peer0.sv.udn.vn:
-    container_name: peer0.sv.udn.vn
+  peer0.holder.com:
+    container_name: peer0.holder.com
     image: hyperledger/fabric-peer:latest
     labels:
       service: hyperledger-fabric
@@ -43,9 +43,9 @@ services:
     volumes:
       - ./docker/peercfg:/etc/hyperledger/peercfg
       - ${DOCKER_SOCK}:/host/var/run/docker.sock
-
-  peer1.sv.udn.vn:
-    container_name: peer1.sv.udn.vn
+  
+  peer1.holder.com:
+    container_name: peer1.holder.com
     image: hyperledger/fabric-peer:latest
     labels:
       service: hyperledger-fabric

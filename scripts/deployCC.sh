@@ -1,7 +1,8 @@
 #!/bin/bash
 
 source scripts/utils.sh
-CHANNEL_NAME=${1:-"diplomachannel"}
+
+CHANNEL_NAME=${1:-"mychannel"}
 CC_NAME=${2}
 CC_SRC_PATH=${3}
 CC_SRC_LANGUAGE=${4}
@@ -28,7 +29,7 @@ println "- DELAY: ${C_GREEN}${DELAY}${C_RESET}"
 println "- MAX_RETRY: ${C_GREEN}${MAX_RETRY}${C_RESET}"
 println "- VERBOSE: ${C_GREEN}${VERBOSE}${C_RESET}"
 
-FABRIC_CFG_PATH=$PWD/../config/
+FABRIC_CFG_PATH=$PWD/config/
 
 #User has not provided a name
 if [ -z "$CC_NAME" ] || [ "$CC_NAME" = "NA" ]; then
@@ -110,57 +111,38 @@ fi
 . scripts/envVar.sh
 . scripts/ccutils.sh
 
-. common/common.sh
-
 packageChaincode() {
   set -x
   peer lifecycle chaincode package ${CC_NAME}.tar.gz --path ${CC_SRC_PATH} --lang ${CC_RUNTIME_LANGUAGE} --label ${CC_NAME}_${CC_VERSION} >&log.txt
   res=$?
-  PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid ${CC_NAME}.tar.gz)
   { set +x; } 2>/dev/null
   cat log.txt
   verifyResult $res "Chaincode packaging has failed"
   successln "Chaincode is packaged"
 }
 
-function checkPrereqs() {
-  jq --version > /dev/null 2>&1
-
-  if [[ $? -ne 0 ]]; then
-    errorln "jq command not found..."
-    errorln
-    errorln "Follow the instructions in the Fabric docs to install the prereqs"
-    errorln "https://hyperledger-fabric.readthedocs.io/en/latest/prereqs.html"
-    exit 1
-  fi
-}
-
-#check for prerequisites
-checkPrereqs
-
 ## package the chaincode
 packageChaincode
 
 ## Install chaincode on peer0.org1 and peer0.org2
 infoln "Installing chaincode on peer0.org1..."
-installChaincode 1 $ORG1_NAME 0
+installChaincode 1
 infoln "Install chaincode on peer0.org2..."
-installChaincode 2 $ORG2_NAME 0
+installChaincode 2
 
 ## query whether the chaincode is installed
-queryInstalled 1 $ORG1_NAME
+queryInstalled 1
 
 ## approve the definition for org1
-approveForMyOrg 1 $ORG1_NAME
+approveForMyOrg 1
 
-# check whether the chaincode definition is ready to be committed
-# expect org1 to have approved and org2 not to
-
+## check whether the chaincode definition is ready to be committed
+## expect org1 to have approved and org2 not to
 checkCommitReadiness 1 "\"Org1MSP\": true" "\"Org2MSP\": false"
 checkCommitReadiness 2 "\"Org1MSP\": true" "\"Org2MSP\": false"
 
 ## now approve also for org2
-approveForMyOrg 2 $ORG2_NAME
+approveForMyOrg 2
 
 ## check whether the chaincode definition is ready to be committed
 ## expect them both to have approved
@@ -168,11 +150,11 @@ checkCommitReadiness 1 "\"Org1MSP\": true" "\"Org2MSP\": true"
 checkCommitReadiness 2 "\"Org1MSP\": true" "\"Org2MSP\": true"
 
 ## now that we know for sure both orgs have approved, commit the definition
-commitChaincodeDefinition 1 2
-
+commitChaincodeDefinition 1 2 
 ## query on both orgs to see that the definition committed successfully
-queryCommitted 1 $ORG1_NAME
-queryCommitted 2 $ORG2_NAME
+queryCommitted 1
+queryCommitted 2
+
 
 ## Invoke the chaincode - this does require that the chaincode have the 'initLedger'
 ## method defined
@@ -181,5 +163,9 @@ if [ "$CC_INIT_FCN" = "NA" ]; then
 else
   chaincodeInvokeInit 1 2
 fi
+
+set -x
+peer channel fetch newest mychannel.block -o localhost:7050 --ordererTLSHostnameOverride orderer.com -c mychannel --tls --cafile "$ORDERER_CA"
+{ set +x; } 2>/dev/null
 
 exit 0

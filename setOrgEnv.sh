@@ -12,24 +12,27 @@ ORG=${1:-Org1}
 set -e
 set -o pipefail
 
-ORDERER_CA=${PWD}/organizations/ordererOrganizations/udn.vn/orderers/orderer.udn.vn/msp/tlscacerts/tlsca.udn.vn-cert.pem
-PEER0_ORG1_CA=${PWD}/organizations/peerOrganizations/dut.udn.vn/peers/peer0.dut.udn.vn/tls/ca.crt
-PEER0_ORG2_CA=${PWD}/organizations/peerOrganizations/sv.udn.vn/peers/peer0.sv.udn.vn/tls/ca.crt
-FABRIC_CFG_PATH=${PWD}/config
+# Where am I?
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+
+ORDERER_CA=${DIR}/test-network/organizations/ordererOrganizations/tlsca/tlsca-cert.pem
+PEER0_ORG1_CA=${DIR}/test-network/organizations/peerOrganizations/issuer.com/tlsca/tlsca.issuer.com-cert.pem
+PEER0_ORG2_CA=${DIR}/test-network/organizations/peerOrganizations/holder.com/tlsca/tlsca.holder.com-cert.pem
+holder.com
 
 if [[ ${ORG,,} == "org1" || ${ORG,,} == "digibank" ]]; then
 
    CORE_PEER_LOCALMSPID=Org1MSP
-   CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/dut.udn.vn/users/Admin@dut.udn.vn/msp
+   CORE_PEER_MSPCONFIGPATH=${DIR}/test-network/organizations/peerOrganizations/issuer.com/users/Admin@issuer.com/msp
    CORE_PEER_ADDRESS=localhost:7051
-   CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG1_CA
+   CORE_PEER_TLS_ROOTCERT_FILE=${DIR}/test-network/organizations/peerOrganizations/issuer.com/tlsca/tlsca.issuer.com-cert.pem
 
 elif [[ ${ORG,,} == "org2" || ${ORG,,} == "magnetocorp" ]]; then
 
    CORE_PEER_LOCALMSPID=Org2MSP
-   CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/sv.udn.vn/users/Admin@sv.udn.vn/msp
+   CORE_PEER_MSPCONFIGPATH=${DIR}/test-network/organizations/peerOrganizations/holder.com/users/Admin@holder.com/msp
    CORE_PEER_ADDRESS=localhost:9051
-   CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG2_CA
+   CORE_PEER_TLS_ROOTCERT_FILE=${DIR}/test-network/organizations/peerOrganizations/holder.com/tlsca/tlsca.holder.com-cert.pem
 
 else
    echo "Unknown \"$ORG\", please choose Org1/Digibank or Org2/Magnetocorp"

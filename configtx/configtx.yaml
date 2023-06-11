@@ -1,3 +1,9 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+---
 ################################################################################
 #
 #   Section: Organizations
@@ -19,7 +25,7 @@ Organizations:
         ID: OrdererMSP
 
         # MSPDir is the filesystem path which contains the MSP configuration
-        MSPDir: ../organizations/ordererOrganizations/udn.vn/msp/
+        MSPDir: ../organizations/ordererOrganizations/msp
 
         # Policies defines the set of policies at this level of the config tree
         # For organization policies, their canonical path is usually
@@ -35,6 +41,9 @@ Organizations:
                 Type: Signature
                 Rule: "OR('OrdererMSP.admin')"
 
+        OrdererEndpoints:
+            - orderer.com:7050
+
     - &Org1
         # DefaultOrg defines the organization which is used in the sampleconfig
         # of the fabric.git development environment
@@ -43,7 +52,7 @@ Organizations:
         # ID to load the MSP definition as
         ID: Org1MSP
 
-        MSPDir: ../organizations/peerOrganizations/dut.udn.vn/msp
+        MSPDir: ../organizations/peerOrganizations/issuer.com/msp
 
         # Policies defines the set of policies at this level of the config tree
         # For organization policies, their canonical path is usually
@@ -57,18 +66,10 @@ Organizations:
                 Rule: "OR('Org1MSP.admin', 'Org1MSP.client')"
             Admins:
                 Type: Signature
-                Rule: "OR('Org1MSP.admin', 'Org1MSP.client')"
+                Rule: "OR('Org1MSP.admin')"
             Endorsement:
                 Type: Signature
                 Rule: "OR('Org1MSP.peer')"
-
-        # leave this flag set to true.
-        AnchorPeers:
-            # AnchorPeers defines the location of peers which can be used
-            # for cross org gossip communication.  Note, this value is only
-            # encoded in the genesis block in the Application section context
-            - Host: peer0.dut.udn.vn
-              Port: 7051
 
     - &Org2
         # DefaultOrg defines the organization which is used in the sampleconfig
@@ -78,7 +79,7 @@ Organizations:
         # ID to load the MSP definition as
         ID: Org2MSP
 
-        MSPDir: ../organizations/peerOrganizations/sv.udn.vn/msp
+        MSPDir: ../organizations/peerOrganizations/holder.com/msp
 
         # Policies defines the set of policies at this level of the config tree
         # For organization policies, their canonical path is usually
@@ -92,17 +93,11 @@ Organizations:
                 Rule: "OR('Org2MSP.admin', 'Org2MSP.client')"
             Admins:
                 Type: Signature
-                Rule: "OR('Org2MSP.admin', 'Org2MSP.client')"
+                Rule: "OR('Org2MSP.admin')"
             Endorsement:
                 Type: Signature
                 Rule: "OR('Org2MSP.peer')"
-
-        AnchorPeers:
-            # AnchorPeers defines the location of peers which can be used
-            # for cross org gossip communication.  Note, this value is only
-            # encoded in the genesis block in the Application section context
-            - Host: peer0.sv.udn.vn
-              Port: 9051
+    
 ################################################################################
 #
 #   SECTION: Capabilities
@@ -207,16 +202,20 @@ Orderer: &OrdererDefaults
 
     # Orderer Type: The orderer implementation to start
     OrdererType: etcdraft
+    # Addresses used to be the list of orderer addresses that clients and peers
+    # could connect to.  However, this does not allow clients to associate orderer
+    # addresses and orderer organizations which can be useful for things such
+    # as TLS validation.  The preferred way to specify orderer addresses is now
+    # to include the OrdererEndpoints item in your org definition
+    Addresses:
+        - orderer.com:7050
 
     EtcdRaft:
         Consenters:
-            - Host: orderer.udn.vn
-              Port: 7050
-              ClientTLSCert: ../organizations/ordererOrganizations/udn.vn/orderers/orderer.udn.vn/tls/server.crt
-              ServerTLSCert: ../organizations/ordererOrganizations/udn.vn/orderers/orderer.udn.vn/tls/server.crt
-
-    Addresses:
-        - orderer.udn.vn:7050
+        - Host: orderer.com
+          Port: 7050
+          ClientTLSCert: ../organizations/ordererOrganizations/orderers/orderer.com/tls/server.crt
+          ServerTLSCert: ../organizations/ordererOrganizations/orderers/orderer.com/tls/server.crt
 
     # Batch Timeout: The amount of time to wait before creating a batch
     BatchTimeout: 2s
@@ -301,50 +300,16 @@ Channel: &ChannelDefaults
 ################################################################################
 Profiles:
 
-    BasicChannel:
-        Consortium: SampleConsortium
+    TwoOrgsApplicationGenesis:
         <<: *ChannelDefaults
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+            Capabilities: *OrdererCapabilities
         Application:
             <<: *ApplicationDefaults
             Organizations:
                 - *Org1
                 - *Org2
-            Capabilities:
-                <<: *ApplicationCapabilities
-
-    OrdererGenesis:
-        <<: *ChannelDefaults
-        Capabilities:
-            <<: *ChannelCapabilities
-        Orderer:
-            <<: *OrdererDefaults
-            OrdererType: etcdraft
-            EtcdRaft:
-                Consenters:
-                    - Host: orderer.udn.vn
-                      Port: 7050
-                      ClientTLSCert: ../organizations/ordererOrganizations/udn.vn/orderers/orderer.udn.vn/tls/server.crt
-                      ServerTLSCert: ../organizations/ordererOrganizations/udn.vn/orderers/orderer.udn.vn/tls/server.crt
-                    - Host: orderer2.udn.vn
-                      Port: 8050
-                      ClientTLSCert: ../organizations/ordererOrganizations/udn.vn/orderers/orderer2.udn.vn/tls/server.crt
-                      ServerTLSCert: ../organizations/ordererOrganizations/udn.vn/orderers/orderer2.udn.vn/tls/server.crt
-                    - Host: orderer3.udn.vn
-                      Port: 9050
-                      ClientTLSCert: ../organizations/ordererOrganizations/udn.vn/orderers/orderer3.udn.vn/tls/server.crt
-                      ServerTLSCert: ../organizations/ordererOrganizations/udn.vn/orderers/orderer3.udn.vn/tls/server.crt
-            Addresses:
-                - orderer.udn.vn:7050
-                - orderer2.udn.vn:8050
-                - orderer3.udn.vn:9050
-
-            Organizations:
-                - *OrdererOrg
-            Capabilities:
-                <<: *OrdererCapabilities
-        Consortiums:
-            SampleConsortium:
-                Organizations:
-                    - *Org1
-                    - *Org2
-
+            Capabilities: *ApplicationCapabilities

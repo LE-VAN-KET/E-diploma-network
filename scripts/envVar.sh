@@ -10,56 +10,33 @@
 # imports
 . scripts/utils.sh
 
-#export CORE_PEER_TLS_ENABLED=true
-export ORDERER_CA=${PWD}/organizations/ordererOrganizations/udn.vn/orderers/orderer.udn.vn/msp/tlscacerts/tlsca.udn.vn-cert.pem
-#export PEER0_ORG1_CA=${PWD}/organizations/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
-#export PEER0_ORG2_CA=${PWD}/organizations/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem
-#export PEER0_ORG3_CA=${PWD}/organizations/peerOrganizations/org3.example.com/tlsca/tlsca.org3.example.com-cert.pem
-#export ORDERER_ADMIN_TLS_SIGN_CERT=${PWD}/organizations/ordererOrganizations/udn.vn/orderers/orderer.udn.vn/tls/server.crt
-#export ORDERER_ADMIN_TLS_PRIVATE_KEY=${PWD}/organizations/ordererOrganizations/udn.vn/orderers/orderer.udn.vn/tls/server.key
+export CORE_PEER_TLS_ENABLED=true
+export ORDERER_CA=${PWD}/organizations/ordererOrganizations/tlsca/tlsca.example.com-cert.pem
+export PEER0_ORG1_CA=${PWD}/organizations/peerOrganizations/issuer.com/tlsca/tlsca.issuer.com-cert.pem
+export PEER0_ORG2_CA=${PWD}/organizations/peerOrganizations/holder.com/tlsca/tlsca.holder.com-cert.pem
+export ORDERER_ADMIN_TLS_SIGN_CERT=${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls/server.crt
+export ORDERER_ADMIN_TLS_PRIVATE_KEY=${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls/server.key
 
 # Set environment variables for the peer org
 setGlobals() {
   local USING_ORG=""
   if [ -z "$OVERRIDE_ORG" ]; then
-    if [ $# -ne 3 ]; then
-      infoln "SetGlobals method must to 3 args..."
-    fi
     USING_ORG=$1
-    ORG_NAME=$2
-    PEER_NO=$3
   else
     USING_ORG="${OVERRIDE_ORG}"
   fi
   infoln "Using organization ${USING_ORG}"
   if [ $USING_ORG -eq 1 ]; then
-    export PEER0_ORG1_CA=${PWD}/organizations/peerOrganizations/${ORG_NAME}/tlsca/tlsca.${ORG_NAME}-cert.pem
     export CORE_PEER_LOCALMSPID="Org1MSP"
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG1_CA
-    export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/${ORG_NAME}/users/Admin@${ORG_NAME}/msp
-    if [ $PEER_NO -eq 0 ]; then
-      export CORE_PEER_ADDRESS=localhost:7051
-    else
-      export CORE_PEER_ADDRESS=localhost:8051
-    fi
-
+    export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/issuer.com/users/Admin@issuer.com/msp
+    export CORE_PEER_ADDRESS=localhost:7051
   elif [ $USING_ORG -eq 2 ]; then
-    export PEER0_ORG2_CA=${PWD}/organizations/peerOrganizations/${ORG_NAME}/tlsca/tlsca.${ORG_NAME}-cert.pem
     export CORE_PEER_LOCALMSPID="Org2MSP"
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG2_CA
-    export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/${ORG_NAME}/users/Admin@${ORG_NAME}/msp
-    if [ $PEER_NO -eq 0 ]; then
-      export CORE_PEER_ADDRESS=localhost:9051
-    else
-      export CORE_PEER_ADDRESS=localhost:10051
-    fi
+    export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/holder.com/users/Admin@holder.com/msp
+    export CORE_PEER_ADDRESS=localhost:9051
 
-  elif [ $USING_ORG -eq 3 ]; then
-    export $PEER0_ORG3_CA=${PWD}/organizations/peerOrganizations/${ORG_NAME}/tlsca/tlsca.${ORG_NAME}-cert.pem
-    export CORE_PEER_LOCALMSPID="Org3MSP"
-    export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG3_CA
-    export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/${ORG_NAME}/users/Admin@${ORG_NAME}/msp
-    export CORE_PEER_ADDRESS=localhost:11051
   else
     errorln "ORG Unknown"
   fi
@@ -71,8 +48,7 @@ setGlobals() {
 
 # Set environment variables for use in the CLI container
 setGlobalsCLI() {
-  ORG_NAME=$2
-  setGlobals $1 $ORG_NAME 0
+  setGlobals $1
 
   local USING_ORG=""
   if [ -z "$OVERRIDE_ORG" ]; then
@@ -81,31 +57,22 @@ setGlobalsCLI() {
     USING_ORG="${OVERRIDE_ORG}"
   fi
   if [ $USING_ORG -eq 1 ]; then
-    export CORE_PEER_ADDRESS=peer0.${ORG_NAME}:7051
+    export CORE_PEER_ADDRESS=peer0.issuer.com:7051
   elif [ $USING_ORG -eq 2 ]; then
-    export CORE_PEER_ADDRESS=peer0.${ORG_NAME}:9051
-  elif [ $USING_ORG -eq 3 ]; then
-    export CORE_PEER_ADDRESS=peer0.${ORG_NAME}:11051
+    export CORE_PEER_ADDRESS=peer0.holder.com:9051
   else
     errorln "ORG Unknown"
   fi
 }
 
-. common/common.sh
-
 # parsePeerConnectionParameters $@
 # Helper function that sets the peer connection parameters for a chaincode
 # operation
-
 parsePeerConnectionParameters() {
   PEER_CONN_PARMS=()
   PEERS=""
   while [ "$#" -gt 0 ]; do
-    if [ $1 -eq 1 ]; then
-      setGlobals $1 $ORG1_NAME 0
-    elif [ $1 -eq 2 ]; then
-      setGlobals $1 $ORG2_NAME 0
-    fi
+    setGlobals $1
     PEER="peer0.org$1"
     ## Set peer addresses
     if [ -z "$PEERS" ]
@@ -121,6 +88,8 @@ parsePeerConnectionParameters() {
     PEER_CONN_PARMS=("${PEER_CONN_PARMS[@]}" "${TLSINFO[@]}")
     # shift by one to get to the next organization
     shift
+
+    
   done
 }
 

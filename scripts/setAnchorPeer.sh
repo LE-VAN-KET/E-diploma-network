@@ -13,19 +13,16 @@
 # NOTE: this must be run in a CLI container since it requires jq and configtxlator 
 createAnchorPeerUpdate() {
   infoln "Fetching channel config for channel $CHANNEL_NAME"
-  fetchChannelConfig $ORG $CHANNEL_NAME ${CORE_PEER_LOCALMSPID}config.json $ORG_NAME
+  fetchChannelConfig $ORG $CHANNEL_NAME ${CORE_PEER_LOCALMSPID}config.json
 
   infoln "Generating anchor peer update transaction for Org${ORG} on channel $CHANNEL_NAME"
 
   if [ $ORG -eq 1 ]; then
-    HOST="peer0.${ORG_NAME}"
+    HOST="peer0.issuer.com"
     PORT=7051
   elif [ $ORG -eq 2 ]; then
-    HOST="peer0.${ORG_NAME}"
+    HOST="peer0.holder.com"
     PORT=9051
-  elif [ $ORG -eq 3 ]; then
-    HOST="peer0.${ORG_NAME}"
-    PORT=11051
   else
     errorln "Org${ORG} unknown"
   fi
@@ -42,7 +39,7 @@ createAnchorPeerUpdate() {
 }
 
 updateAnchorPeer() {
-  peer channel update -o orderer.udn.vn:7050 --ordererTLSHostnameOverride orderer.udn.vn -c $CHANNEL_NAME -f ${CORE_PEER_LOCALMSPID}anchors.tx --tls --cafile "$ORDERER_CA" >&log.txt
+  peer channel update -o orderer.com:7050 --ordererTLSHostnameOverride orderer.com -c $CHANNEL_NAME -f ${CORE_PEER_LOCALMSPID}anchors.tx --tls --cafile "$ORDERER_CA" >&log.txt
   res=$?
   cat log.txt
   verifyResult $res "Anchor peer update failed"
@@ -51,13 +48,8 @@ updateAnchorPeer() {
 
 ORG=$1
 CHANNEL_NAME=$2
-ORG_NAME=$3
 
-if [ $ORG -eq 1 ]; then
-  setGlobalsCLI  1 "dut.udn.vn"
-else
-  setGlobalsCLI  2 "sv.udn.vn"
-fi
+setGlobalsCLI $ORG
 
 createAnchorPeerUpdate 
 

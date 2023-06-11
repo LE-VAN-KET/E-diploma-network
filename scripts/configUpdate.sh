@@ -15,13 +15,12 @@ fetchChannelConfig() {
   ORG=$1
   CHANNEL=$2
   OUTPUT=$3
-  ORG_NAME=$4
 
-  setGlobals $ORG $ORG_NAME 0
+  setGlobals $ORG
 
   infoln "Fetching the most recent configuration block for the channel"
   set -x
-  peer channel fetch config config_block.pb -o orderer.udn.vn:7050 --ordererTLSHostnameOverride orderer.udn.vn -c $CHANNEL --tls --cafile "$ORDERER_CA"
+  peer channel fetch config config_block.pb -o orderer.com:7050 --ordererTLSHostnameOverride orderer.com -c $CHANNEL --tls --cafile "$ORDERER_CA"
   { set +x; } 2>/dev/null
 
   infoln "Decoding config block to JSON and isolating config to ${OUTPUT}"
@@ -56,8 +55,7 @@ createConfigUpdate() {
 signConfigtxAsPeerOrg() {
   ORG=$1
   CONFIGTXFILE=$2
-  ORG_NAME=$3
-  setGlobals $ORG $ORG_NAME 0
+  setGlobals $ORG
   set -x
   peer channel signconfigtx -f "${CONFIGTXFILE}"
   { set +x; } 2>/dev/null

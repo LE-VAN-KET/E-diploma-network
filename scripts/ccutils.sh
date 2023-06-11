@@ -4,13 +4,10 @@
 # installChaincode PEER ORG
 function installChaincode() {
   ORG=$1
-  setGlobals $ORG $2 0
+  setGlobals $ORG
   set -x
-  peer lifecycle chaincode queryinstalled --output json | jq -r 'try (.installed_chaincodes[].package_id)' | grep ^${PACKAGE_ID}$ >&log.txt
-  if test $? -ne 0; then
-    peer lifecycle chaincode install ${CC_NAME}.tar.gz >&log.txt
-    res=$?
-  fi
+  peer lifecycle chaincode install ${CC_NAME}.tar.gz >&log.txt
+  res=$?
   { set +x; } 2>/dev/null
   cat log.txt
   verifyResult $res "Chaincode installation on peer0.org${ORG} has failed"
@@ -20,12 +17,13 @@ function installChaincode() {
 # queryInstalled PEER ORG
 function queryInstalled() {
   ORG=$1
-  setGlobals $ORG $2 0
+  setGlobals $ORG
   set -x
-  peer lifecycle chaincode queryinstalled --output json | jq -r 'try (.installed_chaincodes[].package_id)' | grep ^${PACKAGE_ID}$ >&log.txt
+  peer lifecycle chaincode queryinstalled >&log.txt
   res=$?
   { set +x; } 2>/dev/null
   cat log.txt
+  PACKAGE_ID=$(sed -n "/${CC_NAME}_${CC_VERSION}/{s/^Package ID: //; s/, Label:.*$//; p;}" log.txt)
   verifyResult $res "Query installed on peer0.org${ORG} has failed"
   successln "Query installed successful on peer0.org${ORG} on channel"
 }
@@ -33,9 +31,9 @@ function queryInstalled() {
 # approveForMyOrg VERSION PEER ORG
 function approveForMyOrg() {
   ORG=$1
-  setGlobals $ORG $2 0
+  setGlobals $ORG
   set -x
-  peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.udn.vn --tls --cafile "$ORDERER_CA" --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --package-id ${PACKAGE_ID} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
+  peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.com --tls --cafile "$ORDERER_CA" --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --package-id ${PACKAGE_ID} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
   res=$?
   { set +x; } 2>/dev/null
   cat log.txt
@@ -43,18 +41,11 @@ function approveForMyOrg() {
   successln "Chaincode definition approved on peer0.org${ORG} on channel '$CHANNEL_NAME'"
 }
 
-# Import
-. common/common.sh
 # checkCommitReadiness VERSION PEER ORG
 function checkCommitReadiness() {
   ORG=$1
   shift 1
-  if [ $ORG -eq 1 ]; then
-    setGlobals $ORG $ORG1_NAME 0
-  elif [ $ORG -eq 2 ]; then
-    setGlobals $ORG $ORG2_NAME 0
-  fi
-
+  setGlobals $ORG
   infoln "Checking the commit readiness of the chaincode definition on peer0.org${ORG} on channel '$CHANNEL_NAME'..."
   local rc=1
   local COUNTER=1
@@ -91,7 +82,7 @@ function commitChaincodeDefinition() {
   # peer (if join was successful), let's supply it directly as we know
   # it using the "-o" option
   set -x
-  peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.udn.vn --tls --cafile "$ORDERER_CA" --channelID $CHANNEL_NAME --name ${CC_NAME} "${PEER_CONN_PARMS[@]}" --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
+  peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.com --tls --cafile "$ORDERER_CA" --channelID $CHANNEL_NAME --name ${CC_NAME} "${PEER_CONN_PARMS[@]}" --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
   res=$?
   { set +x; } 2>/dev/null
   cat log.txt
@@ -102,7 +93,7 @@ function commitChaincodeDefinition() {
 # queryCommitted ORG
 function queryCommitted() {
   ORG=$1
-  setGlobals $ORG $2 0
+  setGlobals $ORG
   EXPECTED_RESULT="Version: ${CC_VERSION}, Sequence: ${CC_SEQUENCE}, Endorsement Plugin: escc, Validation Plugin: vscc"
   infoln "Querying chaincode definition on peer0.org${ORG} on channel '$CHANNEL_NAME'..."
   local rc=1
@@ -139,7 +130,7 @@ function chaincodeInvokeInit() {
   set -x
   fcn_call='{"function":"'${CC_INIT_FCN}'","Args":[]}'
   infoln "invoke fcn call:${fcn_call}"
-  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.udn.vn --tls --cafile "$ORDERER_CA" -C $CHANNEL_NAME -n ${CC_NAME} "${PEER_CONN_PARMS[@]}" --isInit -c ${fcn_call} >&log.txt
+  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.com --tls --cafile "$ORDERER_CA" -C $CHANNEL_NAME -n ${CC_NAME} "${PEER_CONN_PARMS[@]}" --isInit -c ${fcn_call} >&log.txt
   res=$?
   { set +x; } 2>/dev/null
   cat log.txt
@@ -149,7 +140,7 @@ function chaincodeInvokeInit() {
 
 function chaincodeQuery() {
   ORG=$1
-  setGlobals $ORG $2 0
+  setGlobals $ORG
   infoln "Querying on peer0.org${ORG} on channel '$CHANNEL_NAME'..."
   local rc=1
   local COUNTER=1
