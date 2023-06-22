@@ -8,5 +8,5 @@ log.txt
 /organizations/fabric-ca/ordererOrg/fabric-ca-server-config.yaml
 /organizations/fabric-ca/org1/fabric-ca-server-config.yaml
 /organizations/fabric-ca/org2/fabric-ca-server-config.yaml
-blockchain-explorer/
-explorer/
+# blockchain-explorer/
+# explorer/

@@ -1,0 +1,136 @@
+{
+        "name": "Org1-network",
+        "version": "2.0.0",
+        "client": {
+                "tlsEnable": true,
+                "adminCredential": {
+                        "id": "exploreradmin",
+                        "password": "explorerpw"
+                },
+                "caCredential": {
+                        "id": "admin",
+                        "password": "adminpw"
+                },
+                "enableAuthentication": true,
+                "organization": "Org1MSP",
+                "connection": {
+                        "timeout": {
+                                "peer": {
+                                        "endorser": "300"
+                                },
+                                "orderer": "300"
+                        }
+                }
+        },
+        "channels": {
+                "mychannel": {
+                        "peers": {
+                                "peer0.holder.com": {},
+                                "peer1.holder.com": {},
+                                "peer0.issuer.com": {},
+                                "peer1.issuer.com": {}
+
+                        },
+                        "orderers": [
+                                "orderer.com"
+                        ],
+                        "connection": {
+                                "timeout": {
+                                        "peer": {
+                                                "endorser": "6000",
+                                                "eventHub": "6000",
+                                                "eventReg": "6000"
+                                        }
+                                }
+                        }
+                }
+        },
+        "organizations": {
+                "Org1MSP": {
+                        "mspid": "Org1MSP",
+                        "peers": [ "peer0.issuer.com", "peer1.issuer.com" ],
+                        "certificateAuthorities": [ " ca_issuer" ]
+                },
+                "Org2MSP": {
+                        "mspid": "Org2MSP",
+                        "peers": [ "peer0.holder.com", "peer1.holder.com" ],
+                        "certificateAuthorities": [ "ca_holder" ]
+                }
+        },
+        "orderers": {
+                "orderer.com": {
+                        "url": "grpcs://orderer.com:7050",
+                        "grpcOptions": {
+                                "ssl-target-name-override": "orderer.com",
+                                "hostnameOverride": "orderer.com"
+                        },
+                        "tlsCACerts": {
+                                "pem": "/tmp/crypto/ordererOrganizations/orderers/orderer.com/tls/ca.crt"
+                        }
+                }
+        },
+        "peers": {
+                "peer0.issuer.com": {
+                        "tlsCACerts": {
+                                "path": "/tmp/crypto/peerOrganizations/issuer.com/peers/peer0.issuer.com/tls/ca.crt"
+                        },
+                        "url": "grpcs://peer0.issuer.com:7051",
+                        "grpcOptions": {
+                                "ssl-target-name-override": "peer0.issuer.com"
+                        }
+                },
+                "peer1.issuer.com": {
+                        "tlsCACerts": {
+                                "path": "/tmp/crypto/peerOrganizations/issuer.com/peers/peer1.issuer.com/tls/ca.crt"
+                        },
+                        "url": "grpcs://peer1.issuer.com:7058",
+                        "grpcOptions": {
+                                "ssl-target-name-override": "peer1.issuer.com"
+                        }
+                },
+                "peer0.holder.com": {
+                        "tlsCACerts": {
+                                "path": "/tmp/crypto/peerOrganizations/holder.com/peers/peer0.holder.com/tls/ca.crt"
+                        },
+                        "url": "grpcs://peer0.holder.com:9051",
+                        "grpcOptions": {
+                                "ssl-target-name-override": "peer0.holder.com"
+                        }
+                },
+                "peer1.holder.com": {
+                        "tlsCACerts": {
+                                "path": "/tmp/crypto/peerOrganizations/holder.com/peers/peer1.holder.com/tls/ca.crt"
+                        },
+                        "url": "grpcs://peer1.holder.com:9058",
+                        "grpcOptions": {
+                                "ssl-target-name-override": "peer1.holder.com"
+                        }
+                }
+
+        },
+        "certificateAuthorities": {
+                "ca_issuer": {
+                        "url": "https://ca_issuer:1054",
+                        "httpOptions": {
+                                "verify": false
+                        },
+                        "tlsCACerts": {
+                                "path": "/tmp/crypto/peerOrganizations/issuer.com/ca/ca.issuer.com-cert.pem"
+                        },
+                        "caName": "ca_issuer"
+
+                },
+                "ca_holder": {
+                        "url": "https://ca_holder:2054",
+                        "httpOptions": {
+                                "verify": false
+                        },
+                        "tlsCACerts": {
+                                "path": "/tmp/crypto/peerOrganizations/holder.com/ca/ca.holder.com-cert.pem"
+                        },
+                        "caName": "ca_holder"
+
+                }
+        }
+}
+
