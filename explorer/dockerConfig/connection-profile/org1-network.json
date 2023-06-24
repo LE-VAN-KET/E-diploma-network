@@ -1,6 +1,6 @@
 {
         "name": "Org1-network",
-        "version": "2.0.0",
+        "version": "1.0.0",
         "client": {
                 "tlsEnable": true,
                 "adminCredential": {
@@ -31,9 +31,6 @@
                                 "peer1.issuer.com": {}
 
                         },
-                        "orderers": [
-                                "orderer.com"
-                        ],
                         "connection": {
                                 "timeout": {
                                         "peer": {
@@ -49,24 +46,22 @@
                 "Org1MSP": {
                         "mspid": "Org1MSP",
                         "peers": [ "peer0.issuer.com", "peer1.issuer.com" ],
-                        "certificateAuthorities": [ " ca_issuer" ]
+                        "adminPrivateKey": {
+				"path": "/tmp/crypto/peerOrganizations/issuer.com/users/Admin@issuer.com/msp/keystore/6fd3c8fa2e64c527da78932cfc459f3ed481bcb1f1198ce56964c82fb2c386b5_sk"
+			},
+			"signedCert": {
+				"path": "/tmp/crypto/peerOrganizations/issuer.com/users/Admin@issuer.com/msp/signcerts/cert.pem"
+			}
                 },
                 "Org2MSP": {
                         "mspid": "Org2MSP",
                         "peers": [ "peer0.holder.com", "peer1.holder.com" ],
-                        "certificateAuthorities": [ "ca_holder" ]
-                }
-        },
-        "orderers": {
-                "orderer.com": {
-                        "url": "grpcs://orderer.com:7050",
-                        "grpcOptions": {
-                                "ssl-target-name-override": "orderer.com",
-                                "hostnameOverride": "orderer.com"
-                        },
-                        "tlsCACerts": {
-                                "pem": "/tmp/crypto/ordererOrganizations/orderers/orderer.com/tls/ca.crt"
-                        }
+                        "adminPrivateKey": {
+				"path": "/tmp/crypto/peerOrganizations/holder.com/users/Admin@holder.com/msp/keystore/a56eb2ecd09ff604b146b10654c674d373323b845a7295200e0140a7cb4b102f_sk"
+			},
+			"signedCert": {
+				"path": "/tmp/crypto/peerOrganizations/holder.com/users/Admin@holder.com/msp/signcerts/cert.pem"
+			}
                 }
         },
         "peers": {
@@ -107,30 +102,6 @@
                         }
                 }
 
-        },
-        "certificateAuthorities": {
-                "ca_issuer": {
-                        "url": "https://ca_issuer:1054",
-                        "httpOptions": {
-                                "verify": false
-                        },
-                        "tlsCACerts": {
-                                "path": "/tmp/crypto/peerOrganizations/issuer.com/ca/ca.issuer.com-cert.pem"
-                        },
-                        "caName": "ca_issuer"
-
-                },
-                "ca_holder": {
-                        "url": "https://ca_holder:2054",
-                        "httpOptions": {
-                                "verify": false
-                        },
-                        "tlsCACerts": {
-                                "path": "/tmp/crypto/peerOrganizations/holder.com/ca/ca.holder.com-cert.pem"
-                        },
-                        "caName": "ca_holder"
-
-                }
         }
 }
 
