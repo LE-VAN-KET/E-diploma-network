@@ -1,4 +1,4 @@
-version: "3.8"
+version: "2.1"
 
 volumes:
   pgdata:
@@ -48,7 +48,7 @@ services:
       - ./dockerConfig/crypto-config:/tmp/crypto
       - walletstore:/opt/explorer/wallet
     ports:
-      - 8080:8080
+      - 8081:8080
     depends_on:
       explorerdb.mynetwork.com:
         condition: service_healthy

@@ -11,7 +11,7 @@
                         "id": "admin",
                         "password": "adminpw"
                 },
-                "enableAuthentication": true,
+                "enableAuthentication": false,
                 "organization": "Org1MSP",
                 "connection": {
                         "timeout": {
@@ -23,7 +23,7 @@
                 }
         },
         "channels": {
-                "mychannel": {
+                "e-channel": {
                         "peers": {
                                 "peer0.holder.com": {},
                                 "peer1.holder.com": {},
@@ -49,7 +49,7 @@
                 "Org1MSP": {
                         "mspid": "Org1MSP",
                         "peers": [ "peer0.issuer.com", "peer1.issuer.com" ],
-                        "certificateAuthorities": [ " ca_issuer" ]
+                        "certificateAuthorities": [ "ca_issuer" ]
                 },
                 "Org2MSP": {
                         "mspid": "Org2MSP",
