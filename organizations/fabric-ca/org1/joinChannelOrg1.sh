@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CHANNEL_NAME=mychannel
+CHANNEL_NAME=e-channel
 DELAY="$2"
 TIMEOUT="$3"
 VERBOSE="$4"
@@ -37,7 +37,7 @@ fetchChannelBlock() {
 
   infoln "Fetching the most recent configuration block for the channel"
   set -x
-  peer channel fetch config config_block.pb -o localhost:7050 --ordererTLSHostnameOverride orderer.com -c mychannel --tls --cafile "$ORDERER_CA"
+  peer channel fetch config config_block.pb -o localhost:7050 --ordererTLSHostnameOverride orderer.com -c e-channel --tls --cafile "$ORDERER_CA"
   res=$?
   { set +x; } 2>/dev/null
   

@@ -2,7 +2,7 @@
 
 source scripts/utils.sh
 
-CHANNEL_NAME=${1:-"mychannel"}
+CHANNEL_NAME=${1:-"e-channel"}
 CC_NAME=${2}
 CC_SRC_PATH=${3}
 CC_SRC_LANGUAGE=${4}
@@ -165,7 +165,7 @@ else
 fi
 
 set -x
-peer channel fetch newest mychannel.block -o localhost:7050 --ordererTLSHostnameOverride orderer.com -c mychannel --tls --cafile "$ORDERER_CA"
+peer channel fetch newest e-channel.block -o localhost:7050 --ordererTLSHostnameOverride orderer.com -c e-channel --tls --cafile "$ORDERER_CA"
 { set +x; } 2>/dev/null
 
 exit 0
