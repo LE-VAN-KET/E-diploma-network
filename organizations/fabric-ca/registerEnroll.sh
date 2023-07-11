@@ -121,6 +121,75 @@ function createOrg2() {
 #   cp "${PWD}/organizations/peerOrganizations/holder.com/msp/config.yaml" "${PWD}/organizations/peerOrganizations/holder.com/users/Admin@holder.com/msp/config.yaml"
 # }
 
+orderer1MSP() {
+  infoln "Generating the orderer msp"
+  set -x
+  fabric-ca-client enroll -u https://orderer:ordererpw@localhost:9054 --caname ca-orderer -M "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/msp" --csr.hosts orderer.com --csr.hosts localhost --tls.certfiles "${PWD}/organizations/fabric-ca/ordererOrg/ca-cert.pem"
+  { set +x; } 2>/dev/null
+
+  cp "${PWD}/organizations/ordererOrganizations/msp/config.yaml" "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/msp/config.yaml"
+
+  infoln "Generating the orderer-tls certificates"
+  set -x
+  fabric-ca-client enroll -u https://orderer:ordererpw@localhost:9054 --caname ca-orderer -M "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls" --enrollment.profile tls --csr.hosts orderer.com --csr.hosts localhost --tls.certfiles "${PWD}/organizations/fabric-ca/ordererOrg/ca-cert.pem"
+  { set +x; } 2>/dev/null
+
+  # Copy the tls CA cert, server cert, server keystore to well known file names in the orderer's tls directory that are referenced by orderer startup config
+  cp "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls/tlscacerts/"* "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls/ca.crt"
+  cp "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls/signcerts/"* "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls/server.crt"
+  cp "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls/keystore/"* "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls/server.key"
+
+  # Copy orderer org's CA cert to orderer's /msp/tlscacerts directory (for use in the orderer MSP definition)
+  mkdir -p "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/msp/tlscacerts"
+  cp "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls/tlscacerts/"* "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+}
+
+orderer2MSP() {
+  infoln "Generating the orderer msp"
+  set -x
+  fabric-ca-client enroll -u https://orderer2:ordererpw@localhost:9054 --caname ca-orderer -M "${PWD}/organizations/ordererOrganizations/orderers/orderer2.com/msp" --csr.hosts orderer2.com --csr.hosts localhost --tls.certfiles "${PWD}/organizations/fabric-ca/ordererOrg/ca-cert.pem"
+  { set +x; } 2>/dev/null
+
+  cp "${PWD}/organizations/ordererOrganizations/msp/config.yaml" "${PWD}/organizations/ordererOrganizations/orderers/orderer2.com/msp/config.yaml"
+
+  infoln "Generating the orderer-tls certificates"
+  set -x
+  fabric-ca-client enroll -u https://orderer2:ordererpw@localhost:9054 --caname ca-orderer -M "${PWD}/organizations/ordererOrganizations/orderers/orderer2.com/tls" --enrollment.profile tls --csr.hosts orderer2.com --csr.hosts localhost --tls.certfiles "${PWD}/organizations/fabric-ca/ordererOrg/ca-cert.pem"
+  { set +x; } 2>/dev/null
+
+  # Copy the tls CA cert, server cert, server keystore to well known file names in the orderer's tls directory that are referenced by orderer startup config
+  cp "${PWD}/organizations/ordererOrganizations/orderers/orderer2.com/tls/tlscacerts/"* "${PWD}/organizations/ordererOrganizations/orderers/orderer2.com/tls/ca.crt"
+  cp "${PWD}/organizations/ordererOrganizations/orderers/orderer2.com/tls/signcerts/"* "${PWD}/organizations/ordererOrganizations/orderers/orderer2.com/tls/server.crt"
+  cp "${PWD}/organizations/ordererOrganizations/orderers/orderer2.com/tls/keystore/"* "${PWD}/organizations/ordererOrganizations/orderers/orderer2.com/tls/server.key"
+
+  # Copy orderer org's CA cert to orderer's /msp/tlscacerts directory (for use in the orderer MSP definition)
+  mkdir -p "${PWD}/organizations/ordererOrganizations/orderers/orderer2.com/msp/tlscacerts"
+  cp "${PWD}/organizations/ordererOrganizations/orderers/orderer2.com/tls/tlscacerts/"* "${PWD}/organizations/ordererOrganizations/orderers/orderer2.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+}
+
+orderer3MSP() {
+  infoln "Generating the orderer msp"
+  set -x
+  fabric-ca-client enroll -u https://orderer3:ordererpw@localhost:9054 --caname ca-orderer -M "${PWD}/organizations/ordererOrganizations/orderers/orderer3.com/msp" --csr.hosts orderer3.com --csr.hosts localhost --tls.certfiles "${PWD}/organizations/fabric-ca/ordererOrg/ca-cert.pem"
+  { set +x; } 2>/dev/null
+
+  cp "${PWD}/organizations/ordererOrganizations/msp/config.yaml" "${PWD}/organizations/ordererOrganizations/orderers/orderer3.com/msp/config.yaml"
+
+  infoln "Generating the orderer-tls certificates"
+  set -x
+  fabric-ca-client enroll -u https://orderer3:ordererpw@localhost:9054 --caname ca-orderer -M "${PWD}/organizations/ordererOrganizations/orderers/orderer3.com/tls" --enrollment.profile tls --csr.hosts orderer3.com --csr.hosts localhost --tls.certfiles "${PWD}/organizations/fabric-ca/ordererOrg/ca-cert.pem"
+  { set +x; } 2>/dev/null
+
+  # Copy the tls CA cert, server cert, server keystore to well known file names in the orderer's tls directory that are referenced by orderer startup config
+  cp "${PWD}/organizations/ordererOrganizations/orderers/orderer3.com/tls/tlscacerts/"* "${PWD}/organizations/ordererOrganizations/orderers/orderer3.com/tls/ca.crt"
+  cp "${PWD}/organizations/ordererOrganizations/orderers/orderer3.com/tls/signcerts/"* "${PWD}/organizations/ordererOrganizations/orderers/orderer3.com/tls/server.crt"
+  cp "${PWD}/organizations/ordererOrganizations/orderers/orderer3.com/tls/keystore/"* "${PWD}/organizations/ordererOrganizations/orderers/orderer3.com/tls/server.key"
+
+  # Copy orderer org's CA cert to orderer's /msp/tlscacerts directory (for use in the orderer MSP definition)
+  mkdir -p "${PWD}/organizations/ordererOrganizations/orderers/orderer3.com/msp/tlscacerts"
+  cp "${PWD}/organizations/ordererOrganizations/orderers/orderer3.com/tls/tlscacerts/"* "${PWD}/organizations/ordererOrganizations/orderers/orderer3.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+}
+
 function createOrderer() {
   infoln "Enrolling the CA admin"
   mkdir -p organizations/ordererOrganizations
@@ -161,31 +230,22 @@ function createOrderer() {
   fabric-ca-client register --caname ca-orderer --id.name orderer --id.secret ordererpw --id.type orderer --tls.certfiles "${PWD}/organizations/fabric-ca/ordererOrg/ca-cert.pem"
   { set +x; } 2>/dev/null
 
+  set -x
+  fabric-ca-client register --caname ca-orderer --id.name orderer2 --id.secret ordererpw --id.type orderer --tls.certfiles "${PWD}/organizations/fabric-ca/ordererOrg/ca-cert.pem"
+  { set +x; } 2>/dev/null
+
+  set -x
+  fabric-ca-client register --caname ca-orderer --id.name orderer3 --id.secret ordererpw --id.type orderer --tls.certfiles "${PWD}/organizations/fabric-ca/ordererOrg/ca-cert.pem"
+  { set +x; } 2>/dev/null
+
   infoln "Registering the orderer admin"
   set -x
   fabric-ca-client register --caname ca-orderer --id.name ordererAdmin --id.secret ordererAdminpw --id.type admin --tls.certfiles "${PWD}/organizations/fabric-ca/ordererOrg/ca-cert.pem"
   { set +x; } 2>/dev/null
 
-  infoln "Generating the orderer msp"
-  set -x
-  fabric-ca-client enroll -u https://orderer:ordererpw@localhost:9054 --caname ca-orderer -M "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/msp" --csr.hosts orderer.com --csr.hosts localhost --tls.certfiles "${PWD}/organizations/fabric-ca/ordererOrg/ca-cert.pem"
-  { set +x; } 2>/dev/null
-
-  cp "${PWD}/organizations/ordererOrganizations/msp/config.yaml" "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/msp/config.yaml"
-
-  infoln "Generating the orderer-tls certificates"
-  set -x
-  fabric-ca-client enroll -u https://orderer:ordererpw@localhost:9054 --caname ca-orderer -M "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls" --enrollment.profile tls --csr.hosts orderer.com --csr.hosts localhost --tls.certfiles "${PWD}/organizations/fabric-ca/ordererOrg/ca-cert.pem"
-  { set +x; } 2>/dev/null
-
-  # Copy the tls CA cert, server cert, server keystore to well known file names in the orderer's tls directory that are referenced by orderer startup config
-  cp "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls/tlscacerts/"* "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls/ca.crt"
-  cp "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls/signcerts/"* "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls/server.crt"
-  cp "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls/keystore/"* "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls/server.key"
-
-  # Copy orderer org's CA cert to orderer's /msp/tlscacerts directory (for use in the orderer MSP definition)
-  mkdir -p "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/msp/tlscacerts"
-  cp "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/tls/tlscacerts/"* "${PWD}/organizations/ordererOrganizations/orderers/orderer.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+  orderer1MSP
+  orderer2MSP
+  orderer3MSP
 
   infoln "Generating the admin msp"
   set -x

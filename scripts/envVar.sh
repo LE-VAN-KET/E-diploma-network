@@ -19,6 +19,7 @@ export ORDERER_ADMIN_TLS_PRIVATE_KEY=${PWD}/organizations/ordererOrganizations/o
 
 # Set environment variables for the peer org
 setGlobals() {
+  arg=$#
   local USING_ORG=""
   if [ -z "$OVERRIDE_ORG" ]; then
     USING_ORG=$1
@@ -30,13 +31,20 @@ setGlobals() {
     export CORE_PEER_LOCALMSPID="Org1MSP"
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG1_CA
     export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/issuer.com/users/Admin@issuer.com/msp
-    export CORE_PEER_ADDRESS=localhost:7051
+    if [ $arg -eq 2 ];then
+      export CORE_PEER_ADDRESS=localhost:7058
+    else
+      export CORE_PEER_ADDRESS=localhost:7051
+    fi
   elif [ $USING_ORG -eq 2 ]; then
     export CORE_PEER_LOCALMSPID="Org2MSP"
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG2_CA
     export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/holder.com/users/Admin@holder.com/msp
-    export CORE_PEER_ADDRESS=localhost:9051
-
+    if [ $arg -eq 2 ];then
+      export CORE_PEER_ADDRESS=localhost:9058
+    else
+      export CORE_PEER_ADDRESS=localhost:9051
+    fi
   else
     errorln "ORG Unknown"
   fi

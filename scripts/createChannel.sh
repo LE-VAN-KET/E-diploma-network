@@ -55,7 +55,11 @@ createChannel() {
 joinChannel() {
   FABRIC_CFG_PATH=$PWD/config/
   ORG=$1
-  setGlobals $ORG
+	if [ $# -eq 2 ];then
+		setGlobals $ORG $2
+	else
+		setGlobals $ORG
+	fi
 	local rc=1
 	local COUNTER=1
 	## Sometimes Join takes time, hence retry
@@ -94,8 +98,11 @@ successln "Channel '$CHANNEL_NAME' created"
 ## Join all the peers to the channel
 infoln "Joining org1 peer to the channel..."
 joinChannel 1
+joinChannel 1 1
+
 infoln "Joining org2 peer to the channel..."
 joinChannel 2
+joinChannel 2 1
 ## Set the anchor peers for each org in the channel
 infoln "Setting anchor peer for org1..."
 setAnchorPeer 1

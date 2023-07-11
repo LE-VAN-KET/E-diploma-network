@@ -45,8 +45,8 @@ fetchChannelBlock() {
 
 
 joinChannel() {
-  # setGlobalsForPeer0Org1
-  # peer channel join -b $CHANNEL_NAME.block
+  setGlobalsForPeer0Org1
+  peer channel join -b $CHANNEL_NAME.block
 
   setGlobalsForPeer1Org1
   peer channel join -b $CHANNEL_NAME.block
